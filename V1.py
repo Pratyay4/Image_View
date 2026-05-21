@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
+from PIL.ExifTags import TAGS
 
 def create_app():
     # Initialize the main window
@@ -28,8 +29,20 @@ def create_app():
             f"Filename: {image_path.split('/')[-1]}\n"
             f"Format: {img.format}\n"
             f"Size: {img.width}x{img.height}\n"
-            f"Mode: {img.mode}"
+            f"Mode: {img.mode}\n"
         )
+
+        exif_data = img._getexif()
+        if exif_data:
+            #metadata_text += "\n--- Advanced EXIF ---\n"
+            # We limit to a few interesting tags to keep the UI clean
+            interesting_tags = ['Make', 'Model', 'DateTime', 'Software', 'Orientation']
+            for tag_id, value in exif_data.items():
+                tag_name = TAGS.get(tag_id, tag_id)
+                if tag_name in interesting_tags:
+                    metadata_text += f"{tag_name}: {value}\n"
+        else:
+            metadata_text += "\n(No EXIF data found)"
 
         # Optional: Resize for display if the image is huge
         display_img = img.copy()
@@ -48,7 +61,7 @@ def create_app():
         img_label.image = photo  # Critical: Keep a reference to avoid garbage collection
         img_label.pack()
 
-        tk.Label(meta_frame, text="Metadata", font=("Arial", 14, "bold")).pack(anchor="w")
+        tk.Label(meta_frame, text="Details", font=("Arial", 14, "bold")).pack(anchor="w")
         tk.Label(meta_frame, text=metadata_text, justify="left", font=("Consolas", 10)).pack(anchor="w", pady=10)
 
         root.mainloop()
